@@ -1,5 +1,7 @@
 import tkinter as tk
 from tkinter import *
+import json
+from typing import List
 
 class Question():
     questions = []
@@ -55,9 +57,16 @@ class Deck():
     decks = []
 
     def __init__(self, cards, name):
-        self.cards = list(cards)
+        try:
+            self.cards = list(cards)
+        except TypeError:
+            self.cards = list()
+
         self.name = name
         Deck.decks.append(self)
+    
+    def add_card(self, card):
+        self.cards.append(card)
 
     def del_deck(self):
         Deck.decks.remove(self)
@@ -73,6 +82,7 @@ class App(tk.Tk):
         self.columnconfigure(0, weight=1)
 
         self.light_grey = '#D3D3D3'
+        self.defaultbg = self.cget('bg')
 
         # buttons
         buttons_frame = LabelFrame(self, height=20)
@@ -168,18 +178,190 @@ class App(tk.Tk):
         e.widget['foreground'] = 'black'
 
     def add_question(self):
-
+        def add():
+            question = Question(class_acronym=str(class_acronym), teacher=str(teacher), unit_topic=str(unit_topic), question_type=self.adding_type, question=front_text, question_answer=back_text, author=author)
+            self.adding_to_deck.add_card(question)
+            win.destroy()
+        # win init and config
         win = Toplevel(self)
 
         win.title('Add')
         win.geometry('400x325')
+        
+        win.resizable(False, True)
+
+
+        # upper_frame
+        upper_frame = Frame(win, width=400, height=50)
+        upper_frame.pack(side=TOP)
+
+        upper_frame.grid_propagate(False)
+        
+        # StringVar init
+        self.adding_type_text = StringVar()
+        self.adding_type_text.set('Click to Set')
+
+        self.adding_to_deck_text = StringVar()
+        self.adding_to_deck_text.set('Click to Set')
+
+        label_type = Label(upper_frame, text='Type', width=5)
+        label_type.grid(row=0, column=0, padx=2, pady=2)
+
+        btn_type = Button(upper_frame, textvariable=self.adding_type_text, width=20, bd=0, bg=self.light_grey, command=self.choose_type)
+        btn_type.grid(row=0, column=1, padx=5, pady=5)
+
+        label_deck = Label(upper_frame, text='Deck', width=5)
+        label_deck.grid(row=0, column=2, padx=2, pady=2)
+
+        btn_deck = Button(upper_frame, textvariable=self.adding_to_deck_text, width=19, bd=0, bg=self.light_grey, command=self.choose_deck)
+        btn_deck.grid(row=0, column=3, padx=5, pady=5)
+
+        # front_frame
+        front_frame = Frame(win, width=400, height=100)
+        front_frame.pack(side=TOP, padx=5, pady=5)
+
+        front_frame.grid_propagate(False)
+        
+        front_text = StringVar()
+
+        Label(front_frame, text='Front').pack(side=TOP, anchor=W, padx=2, pady=1)
+        entry_front = Entry(front_frame, textvariable=front_text, width=62, background='white')
+        entry_front.pack(side=TOP, fill=BOTH, padx=2, ipady=7)
+        
+        entry_front.focus_set()
+
+        # back_frame
+        back_frame = Frame(win, width=400, height=100)
+        back_frame.pack(side=TOP, padx=5, pady=5)
+
+        back_frame.grid_propagate(False)
+        
+        back_text = StringVar()
+        
+        Label(back_frame, text='Back').pack(side=TOP, anchor=W, padx=2, pady=1)
+        entry_back = Entry(back_frame, textvariable=back_text, width=62, background='white')
+        entry_back.pack(side=TOP, fill=BOTH, padx=2, ipady=7)
+
+        # info_frame
+        info_frame = Frame(win, width=400, height=100)
+        info_frame.pack(side=TOP, padx=5, pady=5)
+
+        info_frame.grid_propagate(False)
+
+        info_frame.columnconfigure(0, weight=1)
+        info_frame.columnconfigure(1, weight=1)
+        info_frame.columnconfigure(2, weight=1)
+        info_frame.columnconfigure(3, weight=1)
+
+        class_acronym = StringVar()
+        teacher = StringVar()
+        unit_topic = StringVar()
+        author = StringVar()
+
+        Label(info_frame, text='Class').grid(row=0, column=0, padx=2, pady=2)
+        Label(info_frame, text='Teacher').grid(row=0, column=1, padx=2, pady=2)
+        Label(info_frame, text='Unit').grid(row=0, column=2, padx=2, pady=2)
+        Label(info_frame, text='Author').grid(row=0, column=3, padx=2, pady=2)
+
+        Entry(info_frame, textvariable=class_acronym).grid(row=1, column=0, padx=2, pady=2)
+        Entry(info_frame, textvariable=teacher).grid(row=1, column=1, padx=2, pady=2)
+        Entry(info_frame, textvariable=unit_topic).grid(row=1, column=2, padx=2, pady=2)
+        Entry(info_frame, textvariable=author).grid(row=1, column=3, padx=2, pady=2)
+
+        # buttons
+        Button(win, text='Cancel', command=win.destroy).pack(side=RIGHT, anchor=S, padx=2, pady=2)
+        Button(win, text='Add', command=add).pack(side=RIGHT, anchor=S, padx=2, pady=2)
+
+    def choose_type(self):
+        
+        def choose(question_type):
+            win.destroy()
+
+            self.adding_type = question_type
+            self.adding_type_text.set(question_type)
+
+        win = Toplevel(self)
+
+        win.title('Choose Type')
+        win.geometry('300x245')
+        win.resizable(False, False)
+        
+        button_frame = Frame(win)
+        button_frame.pack(side=BOTTOM, fill=BOTH, padx=5, pady=5)
+
+        btn_choose = Button(button_frame, text='Choose', bd=1, command= lambda: choose(list(Question.question_types.keys())[listbox.curselection()[0]]))
+        btn_choose.grid(row=0, column=0, sticky=E, padx=5, pady=5)
+
+        listbox_frame = Frame(win, height=225, bg='white')
+        listbox_frame.pack(side=TOP, fill=BOTH, padx=5, pady=5)
+
+        listbox = Listbox(listbox_frame, height=230)
+
+        for i, question_type in enumerate(Question.question_types.keys()):
+            listbox.insert(i, question_type)
+        
+        listbox.pack(side=TOP, fill=BOTH)
+
+    def choose_deck(self):
+        
+        def choose(deck):
+            win.destroy()
+            self.adding_to_deck = deck
+
+            self.adding_to_deck_text.set(deck.name)
+        
+        def add():
+            
+            def ok():
+                Deck(None, deck_name.get())
+                add_win.destroy()
+                win.destroy()
+                self.choose_deck()
+
+            add_win = Toplevel(self)
+            add_win.title('Add Deck')
+            add_win.geometry('300x80')
+            
+            deck_name = StringVar()
+
+            Label(add_win, text='New deck name:').pack(side=TOP, anchor=W, padx=2, pady=2)
+            Entry(add_win, textvariable=deck_name, width=290).pack(side=TOP, anchor=W, padx=5, pady=2)
+            Button(add_win, text='Cancel', command=add_win.destroy).pack(side=RIGHT, anchor=S, padx=2, pady=2)
+            Button(add_win, text='Ok', command=ok).pack(side=RIGHT, anchor=S, padx=2, pady=2)
+
+        win = Toplevel(self)
+
+        win.title('Choose Deck')
+        win.geometry('300x245')
+        win.resizable(False, False)
+        
+        button_frame = Frame(win)
+        button_frame.pack(side=BOTTOM, fill=BOTH, padx=5, pady=5)
+
+        btn_add = Button(button_frame, text='Add', bd=1, command= add)
+        btn_add.grid(row=0, column=1, sticky=E, padx=5, pady=5)
+
+        btn_choose = Button(button_frame, text='Choose', bd=1, command= lambda: choose(Deck.decks[listbox.curselection()[0]]))
+        btn_choose.grid(row=0, column=0, sticky=E, padx=5, pady=5)
+
+        listbox_frame = Frame(win, height=225, bg='white')
+        listbox_frame.pack(side=TOP, fill=BOTH, padx=5, pady=5)
+
+        listbox = Listbox(listbox_frame, height=230)
+
+        for i, deck in enumerate(Deck.decks):
+            listbox.insert(i, deck.name)
+        
+        listbox.pack(side=TOP, fill=BOTH)
+
+        
 
 def main():
-    q1 = Question(class_acronym='chem', techer='ferrando', unit_topic='periodic table', question_type='basic', question='H', question_answer='Hydrogen', author='Henry Oehlrich')
-    q2 = Question(class_acronym='chem', techer='ferrando', unit_topic='periodic table', question_type='basic', question='He', question_answer='Helium', author='Henry Oehlrich')
-    q3 = Question(class_acronym='chem', techer='ferrando', unit_topic='periodic table', question_type='basic', question='Li', question_answer='Lithium', author='Henry Oehlrich')
-    q4 = Question(class_acronym='chem', techer='ferrando', unit_topic='periodic table', question_type='basic', question='Be', question_answer='Berrylium', author='Henry Oehlrich')
-    q5 = Question(class_acronym='chem', techer='ferrando', unit_topic='periodic table', question_type='basic', question='B', question_answer='Boron', author='Henry Oehlrich')
+    q1 = Question(class_acronym='chem', teacher='ferrando', unit_topic='periodic table', question_type='basic', question='H', question_answer='Hydrogen', author='Henry Oehlrich')
+    q2 = Question(class_acronym='chem', teacher='ferrando', unit_topic='periodic table', question_type='basic', question='He', question_answer='Helium', author='Henry Oehlrich')
+    q3 = Question(class_acronym='chem', teacher='ferrando', unit_topic='periodic table', question_type='basic', question='Li', question_answer='Lithium', author='Henry Oehlrich')
+    q4 = Question(class_acronym='chem', teacher='ferrando', unit_topic='periodic table', question_type='basic', question='Be', question_answer='Berrylium', author='Henry Oehlrich')
+    q5 = Question(class_acronym='chem', teacher='ferrando', unit_topic='periodic table', question_type='basic', question='B', question_answer='Boron', author='Henry Oehlrich')
     
     Deck([q1, q2, q3], 'test1')
     Deck([q1, q2, q3, q4], 'test2')

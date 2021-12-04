@@ -1,2 +1,2 @@
 # quizzer
- flashcard gui using tkinter
+flashcard gui using tkinter
