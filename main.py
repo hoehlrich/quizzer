@@ -1,7 +1,7 @@
+from json.decoder import JSONDecodeError
 import tkinter as tk
 from tkinter import *
 import json
-from typing import List
 
 class Question():
     questions = []
@@ -52,6 +52,32 @@ class Question():
                 
 
         return filtered_questions
+    
+    @classmethod
+    def export_dict(self):
+        d = {}
+        for i, question in enumerate(self.questions):
+            d[i] = [question.class_acronym, question.teacher, question.unit_topic, question.question_type, question.question, question.question_answer, question.author]
+        
+        return d
+
+    @classmethod
+    def read_questions(self, _file):
+        try:
+            with open(_file, 'r') as questionfile:
+                questions = json.load(questionfile)
+        except json.decoder.JSONDecodeError or FileNotFoundError:
+            questions = dict()
+        
+        for question in questions.values():
+            Question(class_acronym=question[0], teacher=question[1], unit_topic=question[2], question_type=question[3], question=question[4], question_answer=question[5], author=question[6])
+    
+    @classmethod
+    def write_questions(self, _file):
+        d = self.export_dict()
+        with open(_file, 'w') as questionfile:
+            questionfile.write(json.dumps(d))
+
 
 class Deck():
     decks = []
@@ -79,11 +105,22 @@ class App(tk.Tk):
         self.geometry('960x540')
         self.title('quizzer')
 
+        self.questions_file = 'questions.json'
+
         self.columnconfigure(0, weight=1)
 
         self.light_grey = '#D3D3D3'
         self.defaultbg = self.cget('bg')
 
+        self.init_main_buttons()
+
+        # self.mainframe
+        self.mainframe = Frame(self)
+        self.mainframe.pack(side=TOP)
+
+        self.init_deck_screen()
+    
+    def init_main_buttons(self):
         # buttons
         buttons_frame = LabelFrame(self, height=20)
         buttons_frame.pack(side=TOP, fill=X)
@@ -91,30 +128,22 @@ class App(tk.Tk):
         buttons_frame.columnconfigure(0, weight=1)
         buttons_frame.columnconfigure(5, weight=1)
 
-        btn_decks = Button(buttons_frame, text='Decks', bd=0)
+        btn_decks = Button(buttons_frame, text='Decks', bd=0, command=self.init_deck_screen)
         btn_decks.grid(row=0, column=2, padx=5, pady=5)
 
-        btn_add = Button(buttons_frame, text='Add', bd=0)
+        btn_add = Button(buttons_frame, text='Add', bd=0, command=self.add_question)
         btn_add.grid(row=0, column=3, padx=5, pady=5)
 
-        btn_clear = Button(buttons_frame, text='clear', bd=0)
-        btn_clear.grid(row=0, column=4, padx=5, pady=5)
+        btn_save = Button(buttons_frame, text='Save', bd=0, command = Question.write_questions(self.questions_file))
+        btn_save.grid(row=0, column=4, padx=5, pady=5)
 
         # btn hover effect
-        buttons = [btn_decks, btn_add, btn_clear]
+        buttons = [btn_decks, btn_add, btn_save]
 
         for btn in buttons:
             btn.bind("<Enter>", self.on_enter)
             btn.bind("<Leave>", self.on_leave)
 
-        # self.mainframe
-        self.mainframe = Frame(self)
-        self.mainframe.pack(side=TOP)
-
-        btn_decks['command'] = lambda: self.init_deck_screen()
-        btn_clear['command'] = lambda: self.init_blank_screen()
-        btn_add['command'] = lambda: self.add_question()
-    
     def init_deck_screen(self):
         for widget in self.mainframe.winfo_children():
             widget.destroy()
@@ -135,8 +164,13 @@ class App(tk.Tk):
 
         # decks
         try:
-            for deck in Deck.decks:
-                deck_frame = Frame(self.mainframe, width=500, height=22, bg=self.light_grey)
+            for i, deck in enumerate(Deck.decks):
+                if i % 2 == 0:
+                    bg = self.light_grey
+                else:
+                    bg = self.defaultbg
+
+                deck_frame = Frame(self.mainframe, width=500, height=22, bg=bg)
                 deck_frame.pack(side=TOP)
 
                 deck_frame.columnconfigure(0, weight=2)
@@ -145,13 +179,13 @@ class App(tk.Tk):
 
                 deck_frame.grid_propagate(False)
 
-                btn_deck = Button(deck_frame, text=deck.name, bd=0, bg=self.light_grey, command= lambda: self.init_question_screen(deck))
+                btn_deck = Button(deck_frame, text=deck.name, bd=0, bg=bg, command= lambda: self.init_question_screen(deck))
                 btn_deck.grid(row=0, column=0, sticky=W)
 
-                label_cards = Label(deck_frame, text=len(deck.cards), bg=self.light_grey)
+                label_cards = Label(deck_frame, text=len(deck.cards), bg=bg)
                 label_cards.grid(row=0, column=1, sticky=W)
         except:
-            deck_frame = Frame(self.mainframe, width=500, height=22, bg=self.light_grey)
+            deck_frame = Frame(self.mainframe, width=500, height=22, bg=bg)
             deck_frame.pack(side=TOP)
 
             deck_frame.columnconfigure(0, weight=2)
@@ -179,9 +213,10 @@ class App(tk.Tk):
 
     def add_question(self):
         def add():
-            question = Question(class_acronym=str(class_acronym), teacher=str(teacher), unit_topic=str(unit_topic), question_type=self.adding_type, question=front_text, question_answer=back_text, author=author)
+            question = Question(class_acronym=str(class_acronym.get()), teacher=str(teacher.get()), unit_topic=str(unit_topic.get()), question_type=str(self.adding_type), question=str(front_text.get()), question_answer=str(back_text.get()), author=str(author.get()))
             self.adding_to_deck.add_card(question)
             win.destroy()
+            
         # win init and config
         win = Toplevel(self)
 
@@ -357,18 +392,23 @@ class App(tk.Tk):
         
 
 def main():
-    q1 = Question(class_acronym='chem', teacher='ferrando', unit_topic='periodic table', question_type='basic', question='H', question_answer='Hydrogen', author='Henry Oehlrich')
-    q2 = Question(class_acronym='chem', teacher='ferrando', unit_topic='periodic table', question_type='basic', question='He', question_answer='Helium', author='Henry Oehlrich')
-    q3 = Question(class_acronym='chem', teacher='ferrando', unit_topic='periodic table', question_type='basic', question='Li', question_answer='Lithium', author='Henry Oehlrich')
-    q4 = Question(class_acronym='chem', teacher='ferrando', unit_topic='periodic table', question_type='basic', question='Be', question_answer='Berrylium', author='Henry Oehlrich')
-    q5 = Question(class_acronym='chem', teacher='ferrando', unit_topic='periodic table', question_type='basic', question='B', question_answer='Boron', author='Henry Oehlrich')
+    Question.read_questions('questions.json')
     
+    q1 = Question.questions[0]
+    q2 = Question.questions[1]
+    q3 = Question.questions[2]
+    q4 = Question.questions[3]
+    q5 = Question.questions[4]
+
     Deck([q1, q2, q3], 'test1')
     Deck([q1, q2, q3, q4], 'test2')
     Deck([q1, q2, q3, q4, q5], 'test3')
 
     app = App()
     mainloop()
+
+    Question.write_questions('questions.json')
+    
 
 if __name__ == '__main__':
     main()
