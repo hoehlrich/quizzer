@@ -135,7 +135,7 @@ class App(tk.Tk):
         btn_add = Button(buttons_frame, text='Add', bd=0, command=self.add_question)
         btn_add.grid(row=0, column=3, padx=5, pady=5)
 
-        btn_save = Button(buttons_frame, text='Save', bd=0, command = Question.write_questions(self.questions_file))
+        btn_save = Button(buttons_frame, text='Save', bd=0, command= lambda: Question.write_questions(self.questions_file))
         btn_save.grid(row=0, column=4, padx=5, pady=5)
 
         # btn hover effect
@@ -216,7 +216,7 @@ class App(tk.Tk):
         def space_clicked(event):
             if question.get() == 'That was the last card!':
                 self.init_deck_screen()
-                
+
             if self.answer_showed == False:
                 show_answer()
             else:
@@ -232,8 +232,11 @@ class App(tk.Tk):
 
         
         def show_answer():
-            Label(question_frame, text=self.current_question.question_answer).pack()
-            self.answer_showed = True
+            try:
+                Label(question_frame, text=self.current_question.question_answer).pack()
+                self.answer_showed = True
+            except TclError:
+                pass
 
         for widget in self.mainframe.winfo_children():
             widget.destroy()
