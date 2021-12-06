@@ -1,6 +1,7 @@
 from json.decoder import JSONDecodeError
 import tkinter as tk
 from tkinter import *
+from tkinter import filedialog, messagebox
 import json
 
 class Question():
@@ -116,7 +117,7 @@ class App(tk.Tk):
 
         # self.mainframe
         self.mainframe = Frame(self)
-        self.mainframe.pack(side=TOP)
+        self.mainframe.pack(side=TOP, fill=BOTH)
 
         self.init_deck_screen()
     
@@ -147,6 +148,7 @@ class App(tk.Tk):
     def init_deck_screen(self):
         for widget in self.mainframe.winfo_children():
             widget.destroy()
+        
         
         # decklabels
         decklabels_frame = Frame(self.mainframe, width=500, height=50)
@@ -196,14 +198,60 @@ class App(tk.Tk):
 
             btn_default = Button(deck_frame, text='Default', bd=0, bg=self.light_grey)
             btn_default.grid(row=0, column=0, sticky=W)
+        
+        # bottom buttons
+        btn_frame = Frame(self.mainframe, width=300, height=24)
+        btn_frame.pack(side=BOTTOM, anchor=S, padx=2, pady=2)
+
+        Button(btn_frame, text='Create Deck', bg=self.light_grey).grid(row=0, column=0, padx=2, pady=2)
+        Button(btn_frame, text='Import File', bg=self.light_grey, command=self.upload_file).grid(row=0, column=1, padx=2, pady=2)
+        Button(btn_frame, text='Test', bg=self.light_grey).grid(row=0, column=2, padx=2, pady=2)
+
 
     def init_blank_screen(self):
         for widget in self.mainframe.winfo_children():
             widget.destroy()
     
     def init_question_screen(self, deck):
+        def space_clicked(event):
+            if question.get() == 'That was the last card!':
+                self.init_deck_screen()
+                
+            if self.answer_showed == False:
+                show_answer()
+            else:
+                try:
+                    question_frame.winfo_children()[1].destroy()
+                    
+                    self.answer_showed = False
+                    self.current_question = deck.cards[deck.cards.index(self.current_question) + 1]
+                    question.set(self.current_question.question)
+                except IndexError:
+                    question.set('That was the last card!')
+            
+
+        
+        def show_answer():
+            Label(question_frame, text=self.current_question.question_answer).pack()
+            self.answer_showed = True
+
         for widget in self.mainframe.winfo_children():
             widget.destroy()
+
+        question_frame = Frame(self.mainframe)
+        question_frame.pack(side=TOP)
+
+        self.bind('<space>', space_clicked)
+        
+        self.answer_showed = False
+        self.current_question = deck.cards[0]
+        
+        question = StringVar()
+        question.set(self.current_question.question)
+
+        Label(question_frame, textvariable=question).pack()
+
+            
 
     def on_enter(self, e):
         e.widget['foreground'] = 'grey'
@@ -388,6 +436,14 @@ class App(tk.Tk):
             listbox.insert(i, deck.name)
         
         listbox.pack(side=TOP, fill=BOTH)
+
+    def upload_file(self):
+        filename = filedialog.askopenfilename()
+        
+        if '.json' in filename:
+            Question.read_questions(filename)
+        else:
+            messagebox.showerror('Import Error', 'Invalid File.')
 
         
 
