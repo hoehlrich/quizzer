@@ -177,17 +177,13 @@ class App(tk.Tk):
                 deck_frame = Frame(self.mainframe, width=500, height=22, bg=bg)
                 deck_frame.pack(side=TOP)
 
-                deck_frame.columnconfigure(0, weight=2)
-                deck_frame.columnconfigure(1, weight=1)
-                deck_frame.columnconfigure(2, weight=1)
+                deck_frame.pack_propagate(False)
 
-                deck_frame.grid_propagate(False)
+                btn_deck = Button(deck_frame, text=deck.name, bd=0, bg=bg, width=26, anchor=W, command= lambda: self.init_question_screen(deck))
+                btn_deck.pack(side=LEFT)
 
-                btn_deck = Button(deck_frame, text=deck.name, bd=0, bg=bg, command= lambda: self.init_question_screen(deck))
-                btn_deck.grid(row=0, column=0, sticky=W)
-
-                label_cards = Label(deck_frame, text=len(deck.cards), bg=bg)
-                label_cards.grid(row=0, column=1, sticky=W)
+                label_cards = Label(deck_frame, text=len(deck.cards), bg=bg, width=17, anchor=W)
+                label_cards.pack(side=LEFT)
         except:
             deck_frame = Frame(self.mainframe, width=500, height=22, bg=bg)
             deck_frame.pack(side=TOP)
@@ -464,6 +460,7 @@ def main():
     Deck([q1, q2, q3], 'test1')
     Deck([q1, q2, q3, q4], 'test2')
     Deck([q1, q2, q3, q4, q5], 'test3')
+    Deck(Question.questions, 'all')
 
     app = App()
     mainloop()
