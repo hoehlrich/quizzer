@@ -4,6 +4,7 @@ from tkinter import *
 from tkinter import filedialog, messagebox
 import json
 from functools import partial
+import random
 
 class Question():
     questions = []
@@ -210,6 +211,9 @@ class App(tk.Tk):
             widget.destroy()
     
     def init_question_screen(self, deck):
+        deck = deck.cards[:]
+        random.shuffle(deck)
+
         def space_clicked(event):
             if question.get() == 'That was the last card!':
                 self.init_deck_screen()
@@ -221,7 +225,7 @@ class App(tk.Tk):
                     question_frame.winfo_children()[1].destroy()
                     
                     self.answer_showed = False
-                    self.current_question = deck.cards[deck.cards.index(self.current_question) + 1]
+                    self.current_question = deck[deck.index(self.current_question) + 1]
                     question.set(self.current_question.question)
                 except IndexError:
                     question.set('That was the last card!')
@@ -244,7 +248,7 @@ class App(tk.Tk):
         self.bind('<space>', space_clicked)
         
         self.answer_showed = False
-        self.current_question = deck.cards[0]
+        self.current_question = deck[0]
         
         question = StringVar()
         question.set(self.current_question.question)
@@ -450,16 +454,10 @@ class App(tk.Tk):
 def main():
     Question.read_questions('questions.json')
     
-    q1 = Question.questions[0]
-    q2 = Question.questions[1]
-    q3 = Question.questions[2]
-    q4 = Question.questions[3]
-    q5 = Question.questions[4]
-
-    Deck([q1, q2, q3], 'test1')
-    Deck([q1, q2, q3, q4], 'test2')
-    Deck([q1, q2, q3, q4, q5], 'test3')
     Deck(Question.questions, 'all')
+    Deck(Question.questions[:12], 'das Wetter')
+    Deck(Question.questions[12:20], 'Chemistry Midterm')
+    Deck(Question.questions[20:23], 'APES')
 
     app = App()
     mainloop()
