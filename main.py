@@ -1,10 +1,9 @@
-# testing
-
 from json.decoder import JSONDecodeError
 import tkinter as tk
 from tkinter import *
 from tkinter import filedialog, messagebox
 import json
+from functools import partial
 
 class Question():
     questions = []
@@ -179,7 +178,7 @@ class App(tk.Tk):
 
                 deck_frame.pack_propagate(False)
 
-                btn_deck = Button(deck_frame, text=deck.name, bd=0, bg=bg, width=26, anchor=W, command= lambda: self.init_question_screen(deck))
+                btn_deck = Button(deck_frame, text=deck.name, bd=0, bg=bg, width=26, anchor=W, command=partial(self.init_question_screen, deck))
                 btn_deck.pack(side=LEFT)
 
                 label_cards = Label(deck_frame, text=len(deck.cards), bg=bg, width=17, anchor=W)
@@ -291,13 +290,13 @@ class App(tk.Tk):
         label_type = Label(upper_frame, text='Type', width=5)
         label_type.grid(row=0, column=0, padx=2, pady=2)
 
-        btn_type = Button(upper_frame, textvariable=self.adding_type_text, width=20, bd=0, bg=self.light_grey, command=self.choose_type)
+        btn_type = Button(upper_frame, textvariable=self.adding_type_text, width=14, bd=0, bg=self.light_grey, command=self.choose_type)
         btn_type.grid(row=0, column=1, padx=5, pady=5)
 
         label_deck = Label(upper_frame, text='Deck', width=5)
         label_deck.grid(row=0, column=2, padx=2, pady=2)
 
-        btn_deck = Button(upper_frame, textvariable=self.adding_to_deck_text, width=19, bd=0, bg=self.light_grey, command=self.choose_deck)
+        btn_deck = Button(upper_frame, textvariable=self.adding_to_deck_text, width=14, bd=0, bg=self.light_grey, command=self.choose_deck)
         btn_deck.grid(row=0, column=3, padx=5, pady=5)
 
         # front_frame
