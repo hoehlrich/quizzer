@@ -216,6 +216,7 @@ class App(tk.Tk):
 
         def space_clicked(event):
             if question.get() == 'That was the last card!':
+                self.unbind('<space>')
                 self.init_deck_screen()
 
             if self.answer_showed == False:
@@ -449,16 +450,18 @@ class App(tk.Tk):
         else:
             messagebox.showerror('Import Error', 'Invalid File.')
 
-        
-
-def main():
-    Question.read_questions('questions.json')
-    
+def init_decks():
     Deck(Question.questions, 'all')
     Deck(Question.questions[:12], 'das Wetter')
     Deck(Question.questions[12:20], 'Chemistry Midterm')
     Deck(Question.questions[20:23], 'APES')
 
+
+def main():
+    Question.read_questions('questions.json')
+    
+    init_decks()
+    
     app = App()
     mainloop()
 
